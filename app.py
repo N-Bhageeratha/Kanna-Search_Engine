@@ -36,14 +36,21 @@ def search():
     query = request.args.get('q', '')
     results = []
     calc_result = None
+    calc_error = None
     if query:
-        if is_math_expression(query):
-            calc_result = safe_eval(query)
+        stripped_query = query.replace(' ', '')
+        if is_math_expression(stripped_query):
+            calc_result = safe_eval(stripped_query)
+            if calc_result is None:
+                calc_error = 'Invalid expression'
+        elif any(op in stripped_query for op in '+-*/'):
+            # Looks like a math attempt but invalid
+            calc_error = 'Invalid expression'
         conn = get_db()
         tfidf_results = tfidf_search(conn, query)
         results = [{'url': url, 'score': score} for url, score in tfidf_results]
         conn.close()
-    return render_template('results.html', query=query, results=results, calc_result=calc_result)
+    return render_template('results.html', query=query, results=results, calc_result=calc_result, calc_error=calc_error)
 
 # Admin login
 @app.route('/admin/login', methods=['GET', 'POST'])
