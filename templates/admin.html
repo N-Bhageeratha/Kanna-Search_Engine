@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Kanna Search</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 40px auto; background: #fff; padding: 32px; border-radius: 8px; box-shadow: 0 2px 8px #0001; }
+        h2 { color: #4285f4; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+        th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
+        th { background: #f1f1f1; }
+        .delete-btn { color: #fff; background: #ea4335; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; }
+        .delete-btn:hover { background: #c62828; }
+        .logout-btn { float: right; background: #888; color: #fff; border: none; border-radius: 4px; padding: 6px 12px; cursor: pointer; }
+        .logout-btn:hover { background: #555; }
+        .crawl-form { margin-bottom: 24px; }
+        .crawl-btn { background: #34a853; color: #fff; border: none; border-radius: 4px; padding: 8px 16px; cursor: pointer; }
+        .crawl-btn:hover { background: #2c8c47; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <form method="post" action="/admin/logout" style="display:inline;">
+            <button class="logout-btn" type="submit">Logout</button>
+        </form>
+        <h2>Admin Dashboard</h2>
+        <form class="crawl-form" method="post" action="/admin/crawl">
+            <input type="text" name="urls" placeholder="Add new URLs (comma or space separated)" style="width:60%;padding:8px;">
+            <button class="crawl-btn" type="submit">Crawl & Add</button>
+        </form>
+        <h3>Crawled URLs</h3>
+        <table>
+            <tr><th>ID</th><th>URL</th><th>Actions</th></tr>
+            {% for doc in docs %}
+            <tr>
+                <td>{{ doc.id }}</td>
+                <td>{{ doc.url }}</td>
+                <td>
+                    <form method="post" action="/admin/delete" style="display:inline;">
+                        <input type="hidden" name="id" value="{{ doc.id }}">
+                        <button class="delete-btn" type="submit">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</body>
+</html>
