@@ -1,7 +1,9 @@
 
+
 from flask import Flask, render_template, request, redirect, url_for, session
 import sqlite3
 from search import boolean_search, tfidf_search
+import re
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'  # Change this in production
@@ -14,6 +16,17 @@ def get_db():
     conn.row_factory = sqlite3.Row
     return conn
 
+def is_math_expression(query):
+    # Only allow numbers, operators, parentheses, decimal points, and spaces
+    return bool(re.fullmatch(r'[\d\s\+\-\*/\(\)\.]+', query))
+
+def safe_eval(expr):
+    # Only allow math expressions, no builtins or names
+    try:
+        return eval(expr, {"__builtins__": None}, {})
+    except Exception:
+        return None
+
 @app.route('/', methods=['GET'])
 def home():
     return render_template('index.html')
@@ -22,12 +35,15 @@ def home():
 def search():
     query = request.args.get('q', '')
     results = []
+    calc_result = None
     if query:
+        if is_math_expression(query):
+            calc_result = safe_eval(query)
         conn = get_db()
         tfidf_results = tfidf_search(conn, query)
         results = [{'url': url, 'score': score} for url, score in tfidf_results]
         conn.close()
-    return render_template('results.html', query=query, results=results)
+    return render_template('results.html', query=query, results=results, calc_result=calc_result)
 
 # Admin login
 @app.route('/admin/login', methods=['GET', 'POST'])
