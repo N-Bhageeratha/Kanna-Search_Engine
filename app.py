@@ -39,18 +39,29 @@ def search():
     calc_error = None
     if query:
         stripped_query = query.replace(' ', '')
+        # Fuzzy match for calculator-related keywords
+        calc_keywords = ['calculator', 'calculater', 'calc', 'calclator', 'calulator', 'calcutor', 'caluclator', 'calclater', 'cal', 'math', 'maths', 'mathematics']
+        from difflib import get_close_matches
+        show_calc_ui = False
+        # If the query is a math expression or looks like a math attempt
         if is_math_expression(stripped_query):
             calc_result = safe_eval(stripped_query)
+            show_calc_ui = True
             if calc_result is None:
                 calc_error = 'Invalid expression'
         elif any(op in stripped_query for op in '+-*/'):
-            # Looks like a math attempt but invalid
             calc_error = 'Invalid expression'
+            show_calc_ui = True
+        # If the query is a calculator-related word (even with typo)
+        elif get_close_matches(query.lower(), calc_keywords, n=1, cutoff=0.7):
+            show_calc_ui = True
         conn = get_db()
         tfidf_results = tfidf_search(conn, query)
         results = [{'url': url, 'score': score} for url, score in tfidf_results]
         conn.close()
-    return render_template('results.html', query=query, results=results, calc_result=calc_result, calc_error=calc_error)
+    else:
+        show_calc_ui = False
+    return render_template('results.html', query=query, results=results, calc_result=calc_result, calc_error=calc_error, show_calc_ui=show_calc_ui)
 
 # Admin login
 @app.route('/admin/login', methods=['GET', 'POST'])
